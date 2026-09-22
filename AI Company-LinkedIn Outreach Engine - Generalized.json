@@ -1,0 +1,5029 @@
+{
+  "name": "Generic AI Company - LinkedIn Outreach Engine",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## LinkedIn Outreach-Approval Request",
+        "height": 96,
+        "width": 528,
+        "color": "#C2BF66"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -3472,
+        -560
+      ],
+      "id": "229c858b-e33d-48e9-8f82-e8facd71195b",
+      "name": "Sticky Note1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "## LinkedIn Outreach - Approval Handler",
+        "height": 96,
+        "width": 544,
+        "color": "#BBBD4C"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -3472,
+        -240
+      ],
+      "id": "58390c68-4135-4bca-b55f-4c057dce274e",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## AI LinkedIn Outreach — Prospect Qualification",
+        "height": 80,
+        "width": 544,
+        "color": "#BBBD4C"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -3488,
+        -848
+      ],
+      "id": "9ca7c21f-d86e-4358-adbc-32c17751fdb9",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "19a4a722-d574-4bb5-9e01-5c522f07efc4",
+              "leftValue": "={{ $json.Response }}",
+              "rightValue": "Replied",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2368,
+        256
+      ],
+      "id": "79eea11d-41c1-488e-8511-121e33c4d0f9",
+      "name": "Has Prospect Replied"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 12
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -2816,
+        -864
+      ],
+      "id": "1492fba1-6574-4f17-9814-beb16cf62f76",
+      "name": "Start Outreach Process",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Prospect Qualification"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Status",
+              "lookupValue": "New"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -2592,
+        -864
+      ],
+      "id": "8400b961-b506-4d2e-a05a-7db429281291",
+      "name": "Get New Prospects",
+      "executeOnce": false,
+      "alwaysOutputData": false,
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -2368,
+        -864
+      ],
+      "id": "5b6e8383-0988-4462-87e4-7ec0780ee532",
+      "name": "Processing the leads one by one"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-5.6-luna",
+          "mode": "list",
+          "cachedResultName": "GPT-5.6-LUNA"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=You are an experienced B2B sales research analyst working for an AI automation company.\n\nABOUT OUR COMPANY\n\nWe provide businesses with:\n\n- AI workflow automation\n- custom AI agents\n- AI-powered customer service\n- sales automation\n- CRM automation\n- lead qualification systems\n- automated reporting\n- internal knowledge assistants\n- business process automation\n- custom AI integrations\n\nYOUR TASK\n\nEvaluate whether the following prospect could realistically benefit from our AI services.\n\nPROSPECT INFORMATION\n\nFirst name{{ $('Get New Prospects').item.json.First_Name }}\n\nJob title:\n{{ $json.Job_Title }}\n\nCompany:\n{{ $json.Company }}\n\nIndustry:\n{{ $json.Industry }}\n\nCompany size:\n{{ $json.Company_Size }}\n\nCompany website:\n{{ $json.Company_URL }}\n\nCompany description:\n{{ $json.Company_Description }}\n\nLocation:\n{{ $json.Location }}\n\nEvaluate the prospect based on:\n\n1. Their seniority and decision-making authority.\n2. Whether their company is likely to have repetitive operational workflows.\n3. Whether AI automation could create meaningful business value.\n4. Whether their company appears appropriate for B2B AI services.\n5. How strongly our services match their likely responsibilities.\n\nIdentify ONE realistic pain point.\n\nIdentify ONE specific AI automation opportunity.\n\nDo NOT invent company facts that are not provided.\n\nGive the prospect a score from 0 to 100.\n\nSCORING:\n\n90-100 = Exceptional prospect\n80-89 = Strong prospect\n70-79 = Worth contacting\n50-69 = Weak prospect\n0-49 = Poor fit\n\nReturn ONLY valid JSON using this structure:\n\n{\n  \"qualified\": true,\n  \"score\": 85,\n  \"pain_point\": \"Short description\",\n  \"ai_opportunity\": \"Specific AI automation opportunity\",\n  \"reason\": \"Short explanation of why this prospect is or is not a good fit\"\n}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        -2144,
+        -1104
+      ],
+      "id": "db084f7d-674f-49ed-a3f5-243b967d424b",
+      "name": "AI lead Qualification"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $json;\n\n// Helper function to remove duplicate sentences/paragraphs from repetitive AI outputs\nfunction deduplicateSentences(text) {\n  if (!text || typeof text !== \"string\") return \"\";\n  \n  // Split into sentences using period, exclamation, or question marks followed by a space\n  const sentences = text.split(/(?<=[.!?])\\s+/);\n  \n  // Keep only unique, non-empty sentences\n  const uniqueSentences = [];\n  for (const sentence of sentences) {\n    const trimmed = sentence.trim();\n    if (trimmed && !uniqueSentences.includes(trimmed)) {\n      uniqueSentences.push(trimmed);\n    }\n  }\n  \n  return uniqueSentences.join(\" \");\n}\n\n// Extract the actual text returned by the AI model\nlet text =\n  input.output?.[0]?.content?.[0]?.text ||\n  input.output_text ||\n  input.text ||\n  input.message ||\n  input.content ||\n  \"\";\n\n// If no valid text was found, return the original item with an error flag\nif (typeof text !== \"string\" || !text.trim()) {\n  return [\n    {\n      json: {\n        ...$(\"Processing the leads one by one\").item.json,\n        parsing_error: true,\n        parsing_error_message: \"No valid AI text response found\",\n        raw_ai_response: input\n      }\n    }\n  ];\n}\n\n// Clean markdown code fences if the AI returned JSON inside ```json\ntext = text\n  .replace(/```json/gi, \"\")\n  .replace(/```/g, \"\")\n  .trim();\n\ntry {\n  const parsed = JSON.parse(text);\n\n  return [\n    {\n      json: {\n        ...$(\"Processing the leads one by one\").item.json,\n\n        qualified: parsed.qualified ?? false,\n        score: parsed.score ?? parsed.lead_score ?? parsed.Lead_Score ?? 70,\n        pain_point: parsed.pain_point ?? \"\",\n        ai_opportunity: parsed.ai_opportunity ?? \"\",\n        qualification_reason:\n          parsed.reason ??\n          parsed.qualification_reason ??\n          \"\",\n\n        // Map and clean outreach messages to remove any duplicated text\n        Connection_Message: deduplicateSentences(parsed.connection_message ?? parsed.Connection_Message),\n        Followup_1: deduplicateSentences(parsed.followup_1 ?? parsed.Followup_1),\n        Followup_2: deduplicateSentences(parsed.followup_2 ?? parsed.Followup_2),\n        Followup_3: deduplicateSentences(parsed.followup_3 ?? parsed.Followup_3)\n      }\n    }\n  ];\n\n} catch (error) {\n  return [\n    {\n      json: {\n        ...$(\"Processing the leads one by one\").item.json,\n\n        parsing_error: true,\n        parsing_error_message: error.message,\n        raw_ai_response: text\n      }\n    }\n  ];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1792,
+        -1104
+      ],
+      "id": "edcda042-6bcf-4590-850f-cc959f09eccf",
+      "name": "Organize lead Analysis"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "7eeb5b30-6ab4-4371-a632-6d83720bee57",
+              "leftValue": "={{ $json.score }}",
+              "rightValue": 70,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1568,
+        -1104
+      ],
+      "id": "9c7ce399-853e-4dde-87b8-0b77c64dc91d",
+      "name": "Is this a Qualified Lead"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Prospect Qualification"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Lead_ID": "={{ $json.Lead_ID }}",
+            "row_number": 0,
+            "Status": "Not Qualified",
+            "Lead_Score": "=",
+            "Last_Name": "={{ $json.Last_Name }}",
+            "First_Name": "={{ $json.First_Name }}",
+            "Job_Title": "={{ $json.Job_Title }}",
+            "LinkedIn_URL": "={{ $json.LinkedIn_URL }}",
+            "Industry": "={{ $json.Industry }}",
+            "Company_Size": "={{ $json.Company_Size }}",
+            "Location": "={{ $json.Location }}",
+            "Company_Description": "={{ $json.Company_Description }}",
+            "Connection_Message": "={{ $json.Connection_Message }}",
+            "Followup_1": "=",
+            "Followup_2": "=",
+            "Followup_3": "=",
+            "Company": "={{ $json.Company }}",
+            "Email": "={{ $json.Email }}",
+            "Qualified": "={{ $json.Qualified }}",
+            "Qualification Reason": "={{ $json['Qualification Reason'] }}",
+            "Approval": "={{ $json.Approval }}",
+            "Pain Point": "={{ $json['Pain Point'] }}",
+            "AI Opportunity": "={{ $json['AI Opportunity'] }}"
+          },
+          "matchingColumns": [
+            "Lead_ID"
+          ],
+          "schema": [
+            {
+              "id": "Lead_ID",
+              "displayName": "Lead_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "First_Name",
+              "displayName": "First_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last_Name",
+              "displayName": "Last_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Job_Title",
+              "displayName": "Job_Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Industry",
+              "displayName": "Industry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company_Size",
+              "displayName": "Company_Size",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "LinkedIn_URL",
+              "displayName": "LinkedIn_URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Company_Description",
+              "displayName": "Company_Description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Location",
+              "displayName": "Location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Lead_Score",
+              "displayName": "Lead_Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Qualified",
+              "displayName": "Qualified",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Qualification Reason",
+              "displayName": "Qualification Reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Approval",
+              "displayName": "Approval",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Pain Point",
+              "displayName": "Pain Point",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "AI Opportunity",
+              "displayName": "AI Opportunity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Connection_Message",
+              "displayName": "Connection_Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_1",
+              "displayName": "Followup_1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_2",
+              "displayName": "Followup_2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_3",
+              "displayName": "Followup_3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last_Contacted",
+              "displayName": "Last_Contacted",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Next_Followup",
+              "displayName": "Next_Followup",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Response",
+              "displayName": "Response",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1280,
+        -1008
+      ],
+      "id": "31901721-d2c1-4222-bacb-74183d0d80c5",
+      "name": "Mark as not Qualified"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-5.6-luna",
+          "mode": "list",
+          "cachedResultName": "GPT-5.6-LUNA"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=You are an expert B2B LinkedIn outreach copywriter representing an AI automation company.\n\nOur company helps businesses implement:\n\n- AI agents\n- business process automation\n- workflow automation\n- sales automation\n- CRM automation\n- AI customer service\n- reporting automation\n- custom AI systems\n\nPROSPECT\n\nFirst name:\n{{ $json.First_Name }}\n\nJob title:\n{{ $json.Job_Title }}\n\nCompany:\n{{ $json.Company }}\n\nIndustry:\n{{ $json.Industry }}\n\nCompany description:\n{{ $json.Company_Description }}\n\nIdentified pain point:\n{{ $json.pain_point }}\n\nPotential AI opportunity:\n{{ $json.ai_opportunity }}\n\nQualification reason:\n{{ $json.qualification_reason }}\n\nOBJECTIVE\n\nCreate a natural LinkedIn outreach sequence designed to START A CONVERSATION rather than immediately sell our services.\n\nGenerate:\n\n1. Connection request\n2. Follow-up after connection\n3. Value-based second follow-up\n4. Final light follow-up\n\nIMPORTANT WRITING RULES\n\nThe messages should sound as though a knowledgeable human wrote them personally.\n\nDo NOT use:\n\n\"I came across your profile\"\n\n\"I hope this message finds you well\"\n\n\"We are a leading AI company\"\n\n\"Revolutionary\"\n\n\"Game-changing\"\n\n\"Cutting-edge solutions\"\n\n\"I would love to connect\"\n\n\"Can I steal 15 minutes?\"\n\nor other generic sales phrases.\n\nDo not excessively compliment the prospect.\n\nDo not pretend to know something that wasn't supplied.\n\nDo not invent statistics.\n\nDo not invent company initiatives.\n\nDo not immediately pitch a meeting.\n\nDo not use emojis.\n\nDo not sound aggressive.\n\nUse short sentences.\n\nUse natural business language.\n\nCONNECTION REQUEST\n\nKeep it extremely short.\n\nThe goal is simply to create enough relevance for the person to accept.\n\nFOLLOW-UP 1\n\nStart a genuine conversation around the identified operational challenge.\n\nDo not immediately ask for a meeting.\n\nFOLLOW-UP 2\n\nGive a concrete example of how AI automation could potentially improve this type of process.\n\nFOLLOW-UP 3\n\nUse a light, low-pressure close.\n\nReturn ONLY JSON:\n\n{\n  \"connection_message\": \"\",\n  \"followup_1\": \"\",\n  \"followup_2\": \"\",\n  \"followup_3\": \"\"\n}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        -1344,
+        -1200
+      ],
+      "id": "9cdd892d-5431-4e32-9154-137259ca2b94",
+      "name": "Create Personalised Outreach"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $json;\n\n// Extract AI response text\nlet text = input.output?.[0]?.content?.[0]?.text || input.output_text || input.text || input.message || input.content || \"\";\n\n// Validate response\nif (typeof text !== \"string\" || !text.trim()) {\n  return [{\n    json: {\n      ...input,\n      parsing_error: true,\n      parsing_error_message: \"No valid AI text response found\",\n      raw_response: input\n    }\n  }];\n}\n\n// Clean markdown formatting\ntext = text.replace(/```json/gi, \"\").replace(/```/g, \"\").trim();\n\ntry {\n  const parsed = JSON.parse(text);\n  \n  // Safely grab score from previous node if not in current AI response\n  const previousScore = $('Organize lead Analysis').item.json.score ?? $('Organize lead Analysis').item.json.lead_score;\n\n  return [{\n    json: {\n      ...input,\n      connection_message: parsed.connection_message ?? \"\",\n      followup_1: parsed.followup_1 ?? \"\",\n      followup_2: parsed.followup_2 ?? \"\",\n      followup_3: parsed.followup_3 ?? \"\",\n      lead_score: parsed.lead_score ?? parsed.score ?? previousScore ?? 70\n    }\n  }];\n} catch (error) {\n  return [{\n    json: {\n      ...input,\n      parsing_error: true,\n      parsing_error_message: \"Failed to parse JSON response\",\n      raw_response: text\n    }\n  }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -992,
+        -1200
+      ],
+      "id": "3a30e442-48a7-44c5-8138-855003145dcd",
+      "name": "Organize Outreach Message"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Prospect Qualification"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Lead_ID": "={{ $('Get New Prospects').item.json.Lead_ID }}",
+            "First_Name": "={{ $('Get New Prospects').item.json.First_Name }}",
+            "Last_Name": "={{ $('Get New Prospects').item.json.Last_Name }}",
+            "Job_Title": "={{ $('Get New Prospects').item.json.Job_Title }}",
+            "Company": "={{ $('Get New Prospects').item.json.Company }}",
+            "LinkedIn_URL": "={{ $('Get New Prospects').item.json.LinkedIn_URL }}",
+            "Industry": "={{ $('Get New Prospects').item.json.Industry }}",
+            "Company_Size": "={{ $('Get New Prospects').item.json.Company_Size }}",
+            "Location": "={{ $('Get New Prospects').item.json.Location }}",
+            "Company_Description": "={{ $('Get New Prospects').item.json.Company_Description }}",
+            "Status": "=New",
+            "Connection_Message": "={{ $json.connection_message }}",
+            "Followup_1": "={{ $json.followup_1 }}",
+            "Followup_2": "={{ $json.followup_2 }}",
+            "Followup_3": "={{ $json.followup_3 }}",
+            "Approval": "=Pending",
+            "row_number": 0,
+            "Qualified": "={{ $('Organize lead Analysis').item.json.qualified }}",
+            "Qualification Reason": "={{ $('Organize lead Analysis').item.json.qualification_reason }}",
+            "Pain Point": "={{ $('Organize lead Analysis').item.json.pain_point }}",
+            "AI Opportunity": "={{ $('Organize lead Analysis').item.json.ai_opportunity }}",
+            "Email": "={{ $('Get New Prospects').item.json.Email }}",
+            "Score": "={{ $json.lead_score }}"
+          },
+          "matchingColumns": [
+            "Lead_ID"
+          ],
+          "schema": [
+            {
+              "id": "Lead_ID",
+              "displayName": "Lead_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "First_Name",
+              "displayName": "First_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last_Name",
+              "displayName": "Last_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Job_Title",
+              "displayName": "Job_Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Industry",
+              "displayName": "Industry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company_Size",
+              "displayName": "Company_Size",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "LinkedIn_URL",
+              "displayName": "LinkedIn_URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Company_Description",
+              "displayName": "Company_Description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Location",
+              "displayName": "Location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Score",
+              "displayName": "Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Qualified",
+              "displayName": "Qualified",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Qualification Reason",
+              "displayName": "Qualification Reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Approval",
+              "displayName": "Approval",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Pain Point",
+              "displayName": "Pain Point",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "AI Opportunity",
+              "displayName": "AI Opportunity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Connection_Message",
+              "displayName": "Connection_Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_1",
+              "displayName": "Followup_1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_2",
+              "displayName": "Followup_2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_3",
+              "displayName": "Followup_3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -768,
+        -1040
+      ],
+      "id": "6c313e3e-501d-4d72-b559-65e2a8a71147",
+      "name": "Save Outreach to Lead Database"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 12
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -2816,
+        -576
+      ],
+      "id": "a30f3fba-ca0f-4927-b8e6-a9e32de7a31c",
+      "name": "Check for Messages Awaiting Approval",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1990898173,
+          "mode": "list",
+          "cachedResultName": "Approval Request Status"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Approval ",
+              "lookupValue": "Pending"
+            },
+            {
+              "lookupColumn": "Approval ",
+              "lookupValue": "Pending"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -2592,
+        -576
+      ],
+      "id": "9389b692-730c-48f5-a453-4737bbb768c7",
+      "name": "Find Pending Approvals"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -2368,
+        -576
+      ],
+      "id": "c2357197-f3ab-40de-899d-9edc0e191d46",
+      "name": "Process each approval",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1990898173,
+          "mode": "list",
+          "cachedResultName": "Approval Request Status"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Lead_ID": "={{ $('Find Pending Approvals').item.json.Lead_ID }}",
+            "First_Name": "={{ $('Find Pending Approvals').item.json.First_Name }}",
+            "Last_Name": "={{ $('Find Pending Approvals').item.json.Last_Name }}",
+            "Job_Title": "={{ $('Find Pending Approvals').item.json.Job_Title }}",
+            "Company": "={{ $('Find Pending Approvals').item.json.Company }}",
+            "Approval ": "={{ $('Find Pending Approvals').item.json['Approval '] }}",
+            "Connection_Message": "={{ $('Find Pending Approvals').item.json.Connection_Message }}",
+            "Lead_Score": "={{ $('Find Pending Approvals').item.json.Lead_Score }}",
+            "Followup_1": "={{ $('Find Pending Approvals').item.json.Followup_1 }}",
+            "Followup_2": "={{ $('Find Pending Approvals').item.json.Followup_2 }}",
+            "Followup_3": "={{ $('Find Pending Approvals').item.json.Followup_3 }}",
+            "Email": "={{ $('Find Pending Approvals').item.json.Email }}",
+            "Approval_Status": "Request Sent"
+          },
+          "matchingColumns": [
+            "Lead_ID"
+          ],
+          "schema": [
+            {
+              "id": "Lead_ID",
+              "displayName": "Lead_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "First_Name",
+              "displayName": "First_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last_Name",
+              "displayName": "Last_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Job_Title",
+              "displayName": "Job_Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Approval_Status",
+              "displayName": "Approval_Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Approval ",
+              "displayName": "Approval ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Connection_Message",
+              "displayName": "Connection_Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Lead_Score",
+              "displayName": "Lead_Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_1",
+              "displayName": "Followup_1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_2",
+              "displayName": "Followup_2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_3",
+              "displayName": "Followup_3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1920,
+        -576
+      ],
+      "id": "5ac54848-84a3-42a1-a2b4-016d1fcbff16",
+      "name": "Mark Approval Request as sent"
+    },
+    {
+      "parameters": {
+        "path": "linkedin-outreach-approval",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2816,
+        -256
+      ],
+      "id": "5b47161b-7431-4051-a7f3-2d00c226bcca",
+      "name": "Receive Approval Decision",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2008536965,
+          "mode": "list",
+          "cachedResultName": "Sheet4"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Lead_ID",
+              "lookupValue": "={{ $json.query.leadId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -2592,
+        -256
+      ],
+      "id": "5e83c193-de94-40a9-90b0-89c3805d1115",
+      "name": "Find the matching prospect"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "7010a226-47ea-40e2-a769-3a92e0553f96",
+              "leftValue": "={{ $('Receive Approval Decision').item.json.query.action }}",
+              "rightValue": "approve",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2160,
+        -336
+      ],
+      "id": "a4b2ebd4-158a-4520-9617-2cb66c0e2c66",
+      "name": "Approved or Rejected?"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2008536965,
+          "mode": "list",
+          "cachedResultName": "Approved Queue"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Lead_ID": "={{ $json.Lead_ID }}",
+            "First_Name": "={{ $json.First_Name }}",
+            "Last_Name": "={{ $json.Last_Name }}",
+            "Job_Title": "={{ $json.Job_Title }}",
+            "Company": "={{ $json.Company }}",
+            "Industry": "={{ $json.Industry }}",
+            "Approval Status": "=Approved",
+            "Connection_Message": "={{ $json.Connection_Message }}",
+            "Followup_1": "={{ $json.Followup_1 }}",
+            "Followup_2": "={{ $json.Followup_2 }}",
+            "Followup_3": "={{ $json.Followup_3 }}",
+            "Email": "={{ $json.Email }}",
+            "Outreach_Status ": "=Ready to Send",
+            "Meeting_Booked": "=",
+            "Approved_At": "={{($now).toFormat(\"dd/MM/yyyy\")}}",
+            "LinkedIn_URL": "={{ $json.LinkedIn_URL }}"
+          },
+          "matchingColumns": [
+            "Lead_ID"
+          ],
+          "schema": [
+            {
+              "id": "Lead_ID",
+              "displayName": "Lead_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "First_Name",
+              "displayName": "First_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last_Name",
+              "displayName": "Last_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Job_Title",
+              "displayName": "Job_Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Industry",
+              "displayName": "Industry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "LinkedIn_URL",
+              "displayName": "LinkedIn_URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Approval Status",
+              "displayName": "Approval Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Outreach_Status ",
+              "displayName": "Outreach_Status ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Approved_At",
+              "displayName": "Approved_At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Connection_Message",
+              "displayName": "Connection_Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_1",
+              "displayName": "Followup_1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_2",
+              "displayName": "Followup_2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_3",
+              "displayName": "Followup_3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Meeting_Booked",
+              "displayName": "Meeting_Booked",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1936,
+        -352
+      ],
+      "id": "959c66d1-51e5-4492-99fd-5a979901b83d",
+      "name": "Approve Outreach Message"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2008536965,
+          "mode": "list",
+          "cachedResultName": "Sheet4"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Lead_ID": "={{ $json.Lead_ID }}",
+            "First_Name": "={{ $json.First_Name }}",
+            "Last_Name": "={{ $json.Last_Name }}",
+            "Job_Title": "={{ $json.Job_Title }}",
+            "Company": "={{ $json.Company }}",
+            "Industry": "={{ $json.Industry }}",
+            "Approval Status": "Rejected",
+            "Connection_Message": "Not Sent",
+            "Followup_1": "={{ $json.Followup_1 }}",
+            "Followup_2": "={{ $json.Followup_2 }}",
+            "Followup_3": "={{ $json.Followup_3 }}"
+          },
+          "matchingColumns": [
+            "Lead_ID"
+          ],
+          "schema": [
+            {
+              "id": "Lead_ID",
+              "displayName": "Lead_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "First_Name",
+              "displayName": "First_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last_Name",
+              "displayName": "Last_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Job_Title",
+              "displayName": "Job_Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Industry",
+              "displayName": "Industry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Approval Status",
+              "displayName": "Approval Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Connection_Message",
+              "displayName": "Connection_Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Response",
+              "displayName": "Response",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last_Contacted",
+              "displayName": "Last_Contacted",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_1",
+              "displayName": "Followup_1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Next_Action_Date",
+              "displayName": "Next_Action_Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_2",
+              "displayName": "Followup_2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_3",
+              "displayName": "Followup_3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Meeting_Booked",
+              "displayName": "Meeting_Booked",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1936,
+        -160
+      ],
+      "id": "34b438ce-c072-4f07-82c2-beabd90ada4b",
+      "name": "Reject Outreach Message"
+    },
+    {
+      "parameters": {
+        "sendTo": "outreach-manager@example.com",
+        "subject": "=LinkedIn Outreach Approval - {{ $json.First_Name }} {{ $json.Last_Name }}",
+        "message": "=<div style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; background-color: #ffffff;\">\n  \n  <!-- Header -->\n  <div style=\"border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 20px;\">\n    <h2 style=\"color: #0f172a; font-size: 18px; margin: 0;\">LinkedIn Outreach Approval Request</h2>\n    <p style=\"color: #64748b; font-size: 13px; margin: 4px 0 0 0;\">Please review the generated outreach sequence and approve or reject.</p>\n  </div>\n\n  <!-- Prospect Info Grid -->\n  <table style=\"width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px;\">\n    <tr>\n      <td style=\"padding: 6px 0; color: #64748b; width: 130px;\"><strong>Prospect:</strong></td>\n      <td style=\"padding: 6px 0; color: #0f172a; font-weight: 600;\">{{ $json.First_Name }} {{ $json.Last_Name }}</td>\n    </tr>\n    <tr>\n      <td style=\"padding: 6px 0; color: #64748b;\"><strong>Role:</strong></td>\n      <td style=\"padding: 6px 0; color: #334155;\">{{ $json.Job_Title }}</td>\n    </tr>\n    <tr>\n      <td style=\"padding: 6px 0; color: #64748b;\"><strong>Company:</strong></td>\n      <td style=\"padding: 6px 0; color: #334155;\">{{ $json.Company }}</td>\n    </tr>\n    <tr>\n      <td style=\"padding: 6px 0; color: #64748b;\"><strong>Lead Score:</strong></td>\n      <td style=\"padding: 6px 0;\"><span style=\"background-color: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 13px;\">{{ $json.Lead_Score }}</span></td>\n    </tr>\n    <tr>\n      <td style=\"padding: 6px 0; color: #64748b;\"><strong>LinkedIn Profile:</strong></td>\n      <td style=\"padding: 6px 0;\">\n        <a href=\"{{ $json.LinkedIn_URL }}\" target=\"_blank\" style=\"color: #0a66c2; text-decoration: none; font-weight: 600;\">View Profile &rarr;</a>\n      </td>\n    </tr>\n  </table>\n\n  <!-- Outreach Messages -->\n  <div style=\"margin-bottom: 20px;\">\n    <div style=\"font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; margin-bottom: 6px;\">Connection Message</div>\n    <div style=\"background-color: #f8fafc; border-left: 3px solid #0a66c2; padding: 12px; font-size: 13px; line-height: 1.5; color: #334155; border-radius: 0 4px 4px 0; margin-bottom: 14px;\">\n      {{ $json.Connection_Message }}\n    </div>\n\n    <div style=\"font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; margin-bottom: 6px;\">Follow-up 1</div>\n    <div style=\"background-color: #f8fafc; border-left: 3px solid #94a3b8; padding: 12px; font-size: 13px; line-height: 1.5; color: #334155; border-radius: 0 4px 4px 0; margin-bottom: 14px;\">\n      {{ $json.Followup_1 }}\n    </div>\n\n    <div style=\"font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; margin-bottom: 6px;\">Follow-up 2</div>\n    <div style=\"background-color: #f8fafc; border-left: 3px solid #94a3b8; padding: 12px; font-size: 13px; line-height: 1.5; color: #334155; border-radius: 0 4px 4px 0; margin-bottom: 14px;\">\n      {{ $json.Followup_2 }}\n    </div>\n\n    <div style=\"font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; margin-bottom: 6px;\">Follow-up 3</div>\n    <div style=\"background-color: #f8fafc; border-left: 3px solid #94a3b8; padding: 12px; font-size: 13px; line-height: 1.5; color: #334155; border-radius: 0 4px 4px 0; margin-bottom: 20px;\">\n      {{ $json.Followup_3 }}\n    </div>\n  </div>\n\n  <!-- Action Buttons -->\n  <div style=\"text-align: center; padding-top: 12px; border-top: 1px solid #f1f5f9;\">\n    <a href=\"https://YOUR_N8N_PUBLIC_URL/webhook/linkedin-outreach-approval?action=approve&leadId={{ $json.Lead_ID }}\" style=\"background-color: #10b981; color: #ffffff; padding: 10px 22px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; display: inline-block; margin-right: 10px;\">Approve Outreach</a>\n    <a href=\"https://YOUR_N8N_PUBLIC_URL/webhook/linkedin-outreach-approval?action=reject&leadId={{ $json.Lead_ID }}\" style=\"background-color: #ef4444; color: #ffffff; padding: 10px 22px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; display: inline-block;\">Reject</a>\n  </div>\n\n</div>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -2144,
+        -640
+      ],
+      "id": "9ea948ba-4134-46d3-8d2c-dceff7b862f1",
+      "name": "Send Messages for Review"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 12
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -2816,
+        256
+      ],
+      "id": "0a7bddc2-c996-45bb-b3ee-9bd8776637c1",
+      "name": "Check for Due Follow-ups",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1007483602,
+          "mode": "list",
+          "cachedResultName": "Sheet5"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -2592,
+        256
+      ],
+      "id": "793ea343-46c8-452e-b906-1add34f3991d",
+      "name": "Get Active Prospects"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json['Outreach_Status '] }}",
+                    "rightValue": "Connection Sent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "5e7b3f38-b8dd-4273-98d3-d4facffcb8c5"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Connected"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "dec8620f-fc27-4907-84f1-4db72e8441a7",
+                    "leftValue": "={{ $json['Outreach_Status '] }}",
+                    "rightValue": "Follow up 1 sent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Follow up 1"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "e38c7d0c-4c68-4583-a53c-9583fb96b9f5",
+                    "leftValue": "={{ $json['Outreach_Status '] }}",
+                    "rightValue": "Follow up 2 sent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Follow up 2"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "03a31ce2-21d0-4d08-822e-9698460fd99b",
+                    "leftValue": "={{ $json['Outreach_Status '] }}",
+                    "rightValue": "Follow up 3 sent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Follow up 3"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -2160,
+        528
+      ],
+      "id": "6945dca4-719c-4399-aa0f-20bc3dc9df29",
+      "name": "Which Follow up Comes Next?"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2008536965,
+          "mode": "list",
+          "cachedResultName": "Approved Queue"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Lead_ID": "={{ $('Approve Outreach Message').item.json.Lead_ID }}",
+            "First_Name": "={{ $('Approve Outreach Message').item.json.First_Name }}",
+            "Last_Name": "={{ $('Approve Outreach Message').item.json.Last_Name }}",
+            "Job_Title": "={{ $('Approve Outreach Message').item.json.Job_Title }}",
+            "Company": "={{ $('Approve Outreach Message').item.json.Company }}",
+            "Industry": "={{ $('Approve Outreach Message').item.json.Industry }}",
+            "Approval Status": "={{ $('Approve Outreach Message').item.json['Approval Status'] }}",
+            "Connection_Message": "={{ $('Approve Outreach Message').item.json.Connection_Message }}",
+            "Followup_1": "={{ $('Approve Outreach Message').item.json.Followup_1 }}",
+            "Followup_2": "={{ $('Approve Outreach Message').item.json.Followup_2 }}",
+            "Followup_3": "={{ $('Approve Outreach Message').item.json.Followup_3 }}",
+            "Email": "={{ $('Approve Outreach Message').item.json.Email }}",
+            "Outreach_Status ": "Connection Sent",
+            "Approved_At": "={{ ($now).toFormat(\"dd/MM/yyyy\") }}"
+          },
+          "matchingColumns": [
+            "Lead_ID"
+          ],
+          "schema": [
+            {
+              "id": "Lead_ID",
+              "displayName": "Lead_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "First_Name",
+              "displayName": "First_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last_Name",
+              "displayName": "Last_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Job_Title",
+              "displayName": "Job_Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Industry",
+              "displayName": "Industry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "LinkedIn_URL",
+              "displayName": "LinkedIn_URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Approval Status",
+              "displayName": "Approval Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Outreach_Status ",
+              "displayName": "Outreach_Status ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Approved_At",
+              "displayName": "Approved_At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Connection_Message",
+              "displayName": "Connection_Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_1",
+              "displayName": "Followup_1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_2",
+              "displayName": "Followup_2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_3",
+              "displayName": "Followup_3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Meeting_Booked",
+              "displayName": "Meeting_Booked",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1552,
+        -352
+      ],
+      "id": "4f9ae1ee-bd17-4a1c-b7c7-4cc9c5abd955",
+      "name": "Update Message Sent"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1007483602,
+          "mode": "list",
+          "cachedResultName": "Active Follow ups"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Lead_ID": "={{ $json.Lead_ID }}",
+            "Outreach_Status ": "=Connection Sent",
+            "row_number": 0,
+            "First_Name": "={{ $json.First_Name }}",
+            "Last_Name": "={{ $json.Last_Name }}",
+            "Job_Title": "={{ $json.Job_Title }}",
+            "Company": "={{ $json.Company }}",
+            "Industry": "={{ $json.Industry }}",
+            "Followup_1": "={{ $json.Followup_1 }}",
+            "Last_Contacted": "={{ $json.Last_Contacted }}",
+            "Followup_2": "={{ $json.Followup_2 }}",
+            "Followup_3": "={{ $json.Followup_3 }}",
+            "Next_Action_Date for Followup-1": "={{ DateTime.fromFormat($json.Last_Contacted,\"dd-MM-yyyy\").plus({days:5}).toFormat(\"dd/MM/yyyy\") }}",
+            "Next_Action_Date for Followup-2": "={{ DateTime.fromFormat($json.Last_Contacted,\"dd-MM-yyyy\").plus({days:10}).toFormat(\"dd/MM/yyyy\") }}",
+            "Next_Action_Date for Followup-3": "={{ DateTime.fromFormat($json.Last_Contacted, \"dd-MM-yyyy\").plus({ days: 15 }).toFormat(\"dd/MM/yyyy\") }}",
+            "LinkedIn_URL": "={{ $json.LinkedIn_URL }}"
+          },
+          "matchingColumns": [
+            "Lead_ID"
+          ],
+          "schema": [
+            {
+              "id": "Lead_ID",
+              "displayName": "Lead_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "First_Name",
+              "displayName": "First_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last_Name",
+              "displayName": "Last_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Job_Title",
+              "displayName": "Job_Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Industry",
+              "displayName": "Industry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "LinkedIn_URL",
+              "displayName": "LinkedIn_URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Outreach_Status ",
+              "displayName": "Outreach_Status ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last_Contacted",
+              "displayName": "Last_Contacted",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Response",
+              "displayName": "Response",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Next_Action_Date for Followup-1",
+              "displayName": "Next_Action_Date for Followup-1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Followup_1",
+              "displayName": "Followup_1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Next_Action_Date for Followup-2",
+              "displayName": "Next_Action_Date for Followup-2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Followup_2",
+              "displayName": "Followup_2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Next_Action_Date for Followup-3",
+              "displayName": "Next_Action_Date for Followup-3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Followup_3",
+              "displayName": "Followup_3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Meeting_Booked",
+              "displayName": "Meeting_Booked",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1744,
+        224
+      ],
+      "id": "640af4d0-33a5-45fd-823f-a7fdaac087ab",
+      "name": "Save Connected Status"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1007483602,
+          "mode": "list",
+          "cachedResultName": "Sheet5"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Response": "={{ $json.Response }}",
+            "Lead_ID": "={{ $json.Lead_ID }}",
+            "First_Name": "={{ $json.First_Name }}",
+            "Last_Name": "={{ $json.Last_Name }}",
+            "Job_Title": "={{ $json.Job_Title }}",
+            "Company": "={{ $json.Company }}",
+            "Industry": "={{ $json.Industry }}",
+            "Outreach_Status ": "={{ $json['Outreach_Status '] }}",
+            "Message Status": "={{ $json['Message Status'] }}",
+            "Last_Contacted": "={{ $json.Last_Contacted }}",
+            "Next_Action_Date for Followup-1": "={{ $json['Next_Action_Date for Followup-1'] }}",
+            "Followup_1": "={{ $json.Followup_1 }}",
+            "Next_Action_Date for Followup-2": "={{ $json['Next_Action_Date for Followup-2'] }}",
+            "Followup_2": "={{ $json.Followup_2 }}",
+            "Next_Action_Date for Followup-3": "={{ $json['Next_Action_Date for Followup-3'] }}",
+            "Followup_3": "={{ $json.Followup_3 }}"
+          },
+          "matchingColumns": [
+            "Lead_ID"
+          ],
+          "schema": [
+            {
+              "id": "Lead_ID",
+              "displayName": "Lead_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "First_Name",
+              "displayName": "First_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last_Name",
+              "displayName": "Last_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Job_Title",
+              "displayName": "Job_Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Industry",
+              "displayName": "Industry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Outreach_Status ",
+              "displayName": "Outreach_Status ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Message Status",
+              "displayName": "Message Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last_Contacted",
+              "displayName": "Last_Contacted",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Response",
+              "displayName": "Response",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Next_Action_Date for Followup-1",
+              "displayName": "Next_Action_Date for Followup-1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_1",
+              "displayName": "Followup_1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Next_Action_Date for Followup-2",
+              "displayName": "Next_Action_Date for Followup-2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_2",
+              "displayName": "Followup_2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Next_Action_Date for Followup-3",
+              "displayName": "Next_Action_Date for Followup-3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_3",
+              "displayName": "Followup_3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Meeting_Booked",
+              "displayName": "Meeting_Booked",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -2128,
+        64
+      ],
+      "id": "e93b3382-a2f3-41f9-a7a2-e2c5a7e55df9",
+      "name": "Stop Outreach – Prospect Replied"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "61f9ffb0-3818-47a8-901f-956e9935ade9",
+              "name": "Current_Message",
+              "value": "={{ $json.Followup_1 }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1536,
+        224
+      ],
+      "id": "d03722d1-ab51-45fb-858b-9d7e2f1388e5",
+      "name": "Prepare Followup-1"
+    },
+    {
+      "parameters": {
+        "sendTo": "outreach-manager@example.com",
+        "subject": "=Followup-1 Reminder - {{ $('Get Active Prospects').item.json.First_Name }}",
+        "message": "=<div style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; background-color: #ffffff;\">\n  \n  <!-- Header -->\n  <div style=\"border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 20px;\">\n    <h2 style=\"color: #0f172a; font-size: 18px; margin: 0;\">Follow-Up Reminder — LinkedIn Outreach</h2>\n    <p style=\"color: #64748b; font-size: 13px; margin: 4px 0 0 0;\">Please send the scheduled follow-up message to this prospect on LinkedIn.</p>\n  </div>\n\n  <!-- Prospect Details Grid -->\n  <table style=\"width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px;\">\n    <tr>\n      <td style=\"padding: 6px 0; color: #64748b; width: 130px;\"><strong>Prospect:</strong></td>\n      <td style=\"padding: 6px 0; color: #0f172a; font-weight: 600;\">{{ $('Get Active Prospects').item.json.First_Name }} {{ $('Get Active Prospects').item.json.Last_Name }}</td>\n    </tr>\n    <tr>\n      <td style=\"padding: 6px 0; color: #64748b;\"><strong>Job Title:</strong></td>\n      <td style=\"padding: 6px 0; color: #334155;\">{{ $('Get Active Prospects').item.json.Job_Title }}</td>\n    </tr>\n    <tr>\n      <td style=\"padding: 6px 0; color: #64748b;\"><strong>Company:</strong></td>\n      <td style=\"padding: 6px 0; color: #334155;\">{{ $('Get Active Prospects').item.json.Company }}</td>\n    </tr>\n    <tr>\n      <td style=\"padding: 6px 0; color: #64748b;\"><strong>LinkedIn Profile:</strong></td>\n      <td style=\"padding: 6px 0;\">\n        <a href=\"{{ $('Get Active Prospects').item.json.LinkedIn_URL }}\" target=\"_blank\" style=\"color: #0a66c2; text-decoration: none; font-weight: 600;\">Open Profile &rarr;</a>\n      </td>\n    </tr>\n  </table>\n\n  <!-- Follow-Up Message -->\n  <div style=\"margin-bottom: 20px;\">\n    <div style=\"font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; margin-bottom: 6px;\">Follow-up Message to Send</div>\n    <div style=\"background-color: #f8fafc; border-left: 3px solid #0a66c2; padding: 14px; font-size: 13px; line-height: 1.5; color: #334155; border-radius: 0 4px 4px 0;\">\n      {{ $json.Current_Message }}\n    </div>\n  </div>\n\n  <!-- Call to Action -->\n  <div style=\"background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 12px 16px; font-size: 13px; color: #166534; text-align: center;\">\n    <strong>Action Required:</strong> Please visit the LinkedIn profile above, send this follow-up message and update message status in the respective google sheet.\n  </div>\n\n</div>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -1312,
+        224
+      ],
+      "id": "52701c24-6240-4dd6-9ebb-ce277909f691",
+      "name": "Send Followup-1 Reminder"
+    },
+    {
+      "parameters": {
+        "sendTo": "outreach-manager@example.com",
+        "subject": "=Followup-2 Reminder- {{ $('Save Follow up 1 Status').item.json.First_Name }}",
+        "message": "=<div style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; background-color: #ffffff;\">\n  \n  <!-- Header -->\n  <div style=\"border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 20px;\">\n    <h2 style=\"color: #0f172a; font-size: 18px; margin: 0;\">Follow-Up #2 Reminder — LinkedIn Outreach</h2>\n    <p style=\"color: #64748b; font-size: 13px; margin: 4px 0 0 0;\">Please send the scheduled second follow-up message to this prospect on LinkedIn.</p>\n  </div>\n\n  <!-- Prospect Details Grid -->\n  <table style=\"width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px;\">\n    <tr>\n      <td style=\"padding: 6px 0; color: #64748b; width: 130px;\"><strong>Prospect:</strong></td>\n      <td style=\"padding: 6px 0; color: #0f172a; font-weight: 600;\">{{ $('Get Active Prospects').item.json.First_Name }} {{ $('Get Active Prospects').item.json.Last_Name }}</td>\n    </tr>\n    <tr>\n      <td style=\"padding: 6px 0; color: #64748b;\"><strong>Job Title:</strong></td>\n      <td style=\"padding: 6px 0; color: #334155;\">{{ $('Get Active Prospects').item.json.Job_Title }}</td>\n    </tr>\n    <tr>\n      <td style=\"padding: 6px 0; color: #64748b;\"><strong>Company:</strong></td>\n      <td style=\"padding: 6px 0; color: #334155;\">{{ $('Get Active Prospects').item.json.Company }}</td>\n    </tr>\n    <tr>\n      <td style=\"padding: 6px 0; color: #64748b;\"><strong>LinkedIn Profile:</strong></td>\n      <td style=\"padding: 6px 0;\">\n        <a href=\"{{ $('Get Active Prospects').item.json.LinkedIn_URL }}\" target=\"_blank\" style=\"color: #0a66c2; text-decoration: none; font-weight: 600;\">Open Profile &rarr;</a>\n      </td>\n    </tr>\n  </table>\n\n  <!-- Follow-Up Message -->\n  <div style=\"margin-bottom: 20px;\">\n    <div style=\"font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; margin-bottom: 6px;\">Follow-up 2 Message to Send</div>\n    <div style=\"background-color: #f8fafc; border-left: 3px solid #0a66c2; padding: 14px; font-size: 13px; line-height: 1.5; color: #334155; border-radius: 0 4px 4px 0;\">\n      {{ $json.Current_Message }}\n    </div>\n  </div>\n\n  <!-- Action Callout -->\n  <div style=\"background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 12px 16px; font-size: 13px; color: #166534; text-align: center;\">\n    <strong>Action Required:</strong> Kindly visit the LinkedIn profile above,send this follow-up message and update the message status on the respective google sheet.\n  </div>\n\n</div>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -1296,
+        448
+      ],
+      "id": "0f486618-4747-453f-987a-c302878edb6c",
+      "name": "Send Followup-2 Reminder"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "694a3886-5540-4b57-8ee5-fb11deed7246",
+              "name": "Current_Message",
+              "value": "={{ $json.Followup_2 }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1520,
+        448
+      ],
+      "id": "85393f82-d307-4161-bbe1-7d0ed94d8aff",
+      "name": "Prepare Followup-2"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1007483602,
+          "mode": "list",
+          "cachedResultName": "Active Follow ups"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Lead_ID": "={{ $('Get Active Prospects').item.json.Lead_ID }}",
+            "Outreach_Status ": "={{ $json['Outreach_Status '] }}",
+            "Followup_3": "={{ $('Get Active Prospects').item.json.Followup_3 }}",
+            "First_Name": "={{ $json.First_Name }}",
+            "Last_Name": "={{ $json.Last_Name }}",
+            "Job_Title": "={{ $json.Job_Title }}",
+            "Company": "={{ $json.Company }}",
+            "Industry": "={{ $json.Industry }}",
+            "Last_Contacted": "={{ $('Get Active Prospects').item.json.Last_Contacted }}",
+            "Followup_1": "={{ $json.Followup_1 }}",
+            "Followup_2": "={{ $json.Followup_2 }}",
+            "Next_Action_Date for Followup-1": "={{ DateTime.fromFormat($('Get Active Prospects').item.json.Last_Contacted, 'dd/MM/yyyy').plus({ days: 5 }).toFormat('dd/MM/yyyy') }}",
+            "Next_Action_Date for Followup-2": "={{ DateTime.fromFormat($('Get Active Prospects').item.json.Last_Contacted, 'dd/MM/yyyy').plus({ days: 10}).toFormat('dd/MM/yyyy') }}",
+            "Next_Action_Date for Followup-3": "={{ DateTime.fromFormat($('Get Active Prospects').item.json.Last_Contacted, 'dd/MM/yyyy').plus({ days:15 }).toFormat('dd/MM/yyyy') }}",
+            "LinkedIn_URL": "={{ $json.LinkedIn_URL }}"
+          },
+          "matchingColumns": [
+            "Lead_ID"
+          ],
+          "schema": [
+            {
+              "id": "Lead_ID",
+              "displayName": "Lead_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "First_Name",
+              "displayName": "First_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last_Name",
+              "displayName": "Last_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Job_Title",
+              "displayName": "Job_Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Industry",
+              "displayName": "Industry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "LinkedIn_URL",
+              "displayName": "LinkedIn_URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Outreach_Status ",
+              "displayName": "Outreach_Status ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last_Contacted",
+              "displayName": "Last_Contacted",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Response",
+              "displayName": "Response",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Next_Action_Date for Followup-1",
+              "displayName": "Next_Action_Date for Followup-1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Followup_1",
+              "displayName": "Followup_1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Next_Action_Date for Followup-2",
+              "displayName": "Next_Action_Date for Followup-2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Followup_2",
+              "displayName": "Followup_2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Next_Action_Date for Followup-3",
+              "displayName": "Next_Action_Date for Followup-3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Followup_3",
+              "displayName": "Followup_3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Meeting_Booked",
+              "displayName": "Meeting_Booked",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1744,
+        448
+      ],
+      "id": "9473910f-dc75-4c48-980e-978dc5155ce0",
+      "name": "Save Follow up 1 Status"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1007483602,
+          "mode": "list",
+          "cachedResultName": "Active Follow ups"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Lead_ID": "={{ $('Save Connected Status').item.json.Lead_ID }}",
+            "First_Name": "={{ $('Save Connected Status').item.json.First_Name }}",
+            "Last_Name": "={{ $('Save Connected Status').item.json.Last_Name }}",
+            "Job_Title": "={{ $('Save Connected Status').item.json.Job_Title }}",
+            "Company": "={{ $('Save Connected Status').item.json.Company }}",
+            "Industry": "={{ $('Save Connected Status').item.json.Industry }}",
+            "Outreach_Status ": "=Follow Up 1 Ready to Send",
+            "Last_Contacted": "={{ $('Get Active Prospects').item.json.Last_Contacted }}",
+            "Next_Action_Date for Followup-1": "={{ DateTime.fromFormat($('Get Active Prospects').item.json.Last_Contacted, 'dd/MM/yyyy').plus({ days: 5 }).toFormat('dd/MM/yyyy') }}",
+            "Followup_1": "={{ $('Save Connected Status').item.json.Followup_1 }}",
+            "Next_Action_Date for Followup-2": "={{ DateTime.fromFormat($('Get Active Prospects').item.json.Last_Contacted, 'dd/MM/yyyy').plus({ days: 10 }).toFormat('dd/MM/yyyy') }}",
+            "Followup_2": "={{ $('Save Connected Status').item.json.Followup_2 }}",
+            "Next_Action_Date for Followup-3": "={{ DateTime.fromFormat($('Get Active Prospects').item.json.Last_Contacted, 'dd/MM/yyyy').plus({ days: 15 }).toFormat('dd/MM/yyyy') }}",
+            "Followup_3": "={{ $('Save Connected Status').item.json.Followup_3 }}",
+            "LinkedIn_URL": "={{ $('Get Active Prospects').item.json.LinkedIn_URL }}"
+          },
+          "matchingColumns": [
+            "Lead_ID"
+          ],
+          "schema": [
+            {
+              "id": "Lead_ID",
+              "displayName": "Lead_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "First_Name",
+              "displayName": "First_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last_Name",
+              "displayName": "Last_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Job_Title",
+              "displayName": "Job_Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Industry",
+              "displayName": "Industry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "LinkedIn_URL",
+              "displayName": "LinkedIn_URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Outreach_Status ",
+              "displayName": "Outreach_Status ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last_Contacted",
+              "displayName": "Last_Contacted",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Response",
+              "displayName": "Response",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Next_Action_Date for Followup-1",
+              "displayName": "Next_Action_Date for Followup-1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_1",
+              "displayName": "Followup_1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Next_Action_Date for Followup-2",
+              "displayName": "Next_Action_Date for Followup-2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_2",
+              "displayName": "Followup_2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Next_Action_Date for Followup-3",
+              "displayName": "Next_Action_Date for Followup-3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_3",
+              "displayName": "Followup_3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Meeting_Booked",
+              "displayName": "Meeting_Booked",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1104,
+        224
+      ],
+      "id": "76afb522-0191-4d9a-9484-c76242fce696",
+      "name": "Mark Follow up 1 Message Ready"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1007483602,
+          "mode": "list",
+          "cachedResultName": "Sheet5"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Lead_ID": "={{ $('Save Follow up 1 Status').item.json.Lead_ID }}",
+            "First_Name": "={{ $('Save Follow up 1 Status').item.json.First_Name }}",
+            "Last_Name": "={{ $('Save Follow up 1 Status').item.json.Last_Name }}",
+            "Job_Title": "={{ $('Save Follow up 1 Status').item.json.Job_Title }}",
+            "Company": "={{ $('Save Follow up 1 Status').item.json.Company }}",
+            "Message Status": "Followup-2 Ready",
+            "Industry": "={{ $('Save Follow up 1 Status').item.json.Industry }}",
+            "Outreach_Status ": "=Followup-2 Message Ready",
+            "Last_Contacted": "={{ $('Save Follow up 1 Status').item.json.Last_Contacted }}",
+            "Next_Action_Date for Followup-1": "={{ $('Save Follow up 1 Status').item.json['Next_Action_Date for Followup-1'] }}",
+            "Followup_1": "={{ $('Save Follow up 1 Status').item.json.Followup_1 }}",
+            "Next_Action_Date for Followup-2": "={{ $('Save Follow up 1 Status').item.json['Next_Action_Date for Followup-2'] }}",
+            "Followup_2": "={{ $('Save Follow up 1 Status').item.json.Followup_2 }}",
+            "Next_Action_Date for Followup-3": "={{ $('Save Follow up 1 Status').item.json['Next_Action_Date for Followup-3'] }}",
+            "Followup_3": "={{ $('Save Follow up 1 Status').item.json.Followup_3 }}",
+            "LinkedIn_URL": "={{ $('Get Active Prospects').item.json.LinkedIn_URL }}"
+          },
+          "matchingColumns": [
+            "Lead_ID"
+          ],
+          "schema": [
+            {
+              "id": "Lead_ID",
+              "displayName": "Lead_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "First_Name",
+              "displayName": "First_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last_Name",
+              "displayName": "Last_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Job_Title",
+              "displayName": "Job_Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Industry",
+              "displayName": "Industry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "LinkedIn_URL",
+              "displayName": "LinkedIn_URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Outreach_Status ",
+              "displayName": "Outreach_Status ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Message Status",
+              "displayName": "Message Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last_Contacted",
+              "displayName": "Last_Contacted",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Response",
+              "displayName": "Response",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Next_Action_Date for Followup-1",
+              "displayName": "Next_Action_Date for Followup-1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_1",
+              "displayName": "Followup_1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Next_Action_Date for Followup-2",
+              "displayName": "Next_Action_Date for Followup-2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_2",
+              "displayName": "Followup_2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Next_Action_Date for Followup-3",
+              "displayName": "Next_Action_Date for Followup-3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_3",
+              "displayName": "Followup_3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Meeting_Booked",
+              "displayName": "Meeting_Booked",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1104,
+        448
+      ],
+      "id": "06ba12fb-7ef7-4354-a862-abc5c8e076b2",
+      "name": "Mark Follow up 2 Message Ready"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1007483602,
+          "mode": "list",
+          "cachedResultName": "Sheet5"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Lead_ID": "={{ $json.Lead_ID }}",
+            "First_Name": "={{ $json.First_Name }}",
+            "Last_Name": "={{ $json.Last_Name }}",
+            "Job_Title": "={{ $json.Job_Title }}",
+            "Company": "={{ $json.Company }}",
+            "Industry": "={{ $json.Industry }}",
+            "Outreach_Status ": "={{ $json['Outreach_Status '] }}",
+            "Last_Contacted": "={{ $json.Last_Contacted }}",
+            "Followup_1": "={{ $json.Followup_1 }}",
+            "Followup_2": "={{ $json.Followup_2 }}",
+            "Followup_3": "={{ $json.Followup_3 }}",
+            "Next_Action_Date for Followup-1": "={{ DateTime.fromFormat($('Get Active Prospects').item.json.Last_Contacted, 'dd/MM/yyyy').plus({ days: 5 }).toFormat('dd/MM/yyyy') }}",
+            "Next_Action_Date for Followup-2": "={{ DateTime.fromFormat($('Get Active Prospects').item.json.Last_Contacted, 'dd/MM/yyyy').plus({ days: 10}).toFormat('dd/MM/yyyy') }}",
+            "Next_Action_Date for Followup-3": "={{ DateTime.fromFormat($('Get Active Prospects').item.json.Last_Contacted, 'dd/MM/yyyy').plus({ days: 15 }).toFormat('dd/MM/yyyy') }}",
+            "LinkedIn_URL": "={{ $json.LinkedIn_URL }}"
+          },
+          "matchingColumns": [
+            "Lead_ID"
+          ],
+          "schema": [
+            {
+              "id": "Lead_ID",
+              "displayName": "Lead_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "First_Name",
+              "displayName": "First_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last_Name",
+              "displayName": "Last_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Job_Title",
+              "displayName": "Job_Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Industry",
+              "displayName": "Industry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "LinkedIn_URL",
+              "displayName": "LinkedIn_URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Outreach_Status ",
+              "displayName": "Outreach_Status ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last_Contacted",
+              "displayName": "Last_Contacted",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Response",
+              "displayName": "Response",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Next_Action_Date for Followup-1",
+              "displayName": "Next_Action_Date for Followup-1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Followup_1",
+              "displayName": "Followup_1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Next_Action_Date for Followup-2",
+              "displayName": "Next_Action_Date for Followup-2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Followup_2",
+              "displayName": "Followup_2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Next_Action_Date for Followup-3",
+              "displayName": "Next_Action_Date for Followup-3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Followup_3",
+              "displayName": "Followup_3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Meeting_Booked",
+              "displayName": "Meeting_Booked",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1744,
+        640
+      ],
+      "id": "5f70b76b-35c2-4649-a54b-a42b34747f17",
+      "name": "Save Follow up 2 Status"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b92261ce-2dd6-420e-b131-636fde1030e1",
+              "name": "Current_Message",
+              "value": "={{ $json.Followup_3 }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1520,
+        640
+      ],
+      "id": "dc1345c5-4d60-4c5b-83f4-d467d7aee9ea",
+      "name": "Prepare Follow up 3"
+    },
+    {
+      "parameters": {
+        "sendTo": "outreach-manager@example.com",
+        "subject": "=Follow up 3 Reminder -  {{ $('Save Follow up 2 Status').item.json.First_Name }}",
+        "message": "=<div style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; background-color: #ffffff;\">\n  \n  <!-- Header -->\n  <div style=\"border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 20px;\">\n    <h2 style=\"color: #0f172a; font-size: 18px; margin: 0;\">Follow-Up #3 Reminder — LinkedIn Outreach</h2>\n    <p style=\"color: #64748b; font-size: 13px; margin: 4px 0 0 0;\">Please send the final scheduled follow-up message to this prospect on LinkedIn.</p>\n  </div>\n\n  <!-- Prospect Details Grid -->\n  <table style=\"width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px;\">\n    <tr>\n      <td style=\"padding: 6px 0; color: #64748b; width: 130px;\"><strong>Prospect:</strong></td>\n      <td style=\"padding: 6px 0; color: #0f172a; font-weight: 600;\">{{ $('Get Active Prospects').item.json.First_Name }} {{ $('Get Active Prospects').item.json.Last_Name }}</td>\n    </tr>\n    <tr>\n      <td style=\"padding: 6px 0; color: #64748b;\"><strong>Job Title:</strong></td>\n      <td style=\"padding: 6px 0; color: #334155;\">{{ $('Get Active Prospects').item.json.Job_Title }}</td>\n    </tr>\n    <tr>\n      <td style=\"padding: 6px 0; color: #64748b;\"><strong>Company:</strong></td>\n      <td style=\"padding: 6px 0; color: #334155;\">{{ $('Get Active Prospects').item.json.Company }}</td>\n    </tr>\n    <tr>\n      <td style=\"padding: 6px 0; color: #64748b;\"><strong>LinkedIn Profile:</strong></td>\n      <td style=\"padding: 6px 0;\">\n        <a href=\"{{ $('Get Active Prospects').item.json.LinkedIn_URL }}\" target=\"_blank\" style=\"color: #0a66c2; text-decoration: none; font-weight: 600;\">Open Profile &rarr;</a>\n      </td>\n    </tr>\n  </table>\n\n  <!-- Follow-Up Message -->\n  <div style=\"margin-bottom: 20px;\">\n    <div style=\"font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; margin-bottom: 6px;\">Follow-Up 3 Message to Send</div>\n    <div style=\"background-color: #f8fafc; border-left: 3px solid #0a66c2; padding: 14px; font-size: 13px; line-height: 1.5; color: #334155; border-radius: 0 4px 4px 0;\">\n      {{ $json.Current_Message }}\n    </div>\n  </div>\n\n  <!-- Action Callout -->\n  <div style=\"background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 12px 16px; font-size: 13px; color: #166534; text-align: center;\">\n    <strong>Action Required:</strong> Kindly visit the LinkedIn profile above,send this final follow-up message and update the respective google sheet.\n  </div>\n\n</div>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -1296,
+        640
+      ],
+      "id": "6402f0eb-c57a-4c52-a1e5-7826def8a05c",
+      "name": "Send Follow up 3 Reminder"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1007483602,
+          "mode": "list",
+          "cachedResultName": "Sheet5"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Lead_ID": "={{ $('Save Follow up 2 Status').item.json.Lead_ID }}",
+            "First_Name": "={{ $('Save Follow up 2 Status').item.json.First_Name }}",
+            "Last_Name": "={{ $('Save Follow up 2 Status').item.json.Last_Name }}",
+            "Job_Title": "={{ $('Save Follow up 2 Status').item.json.Job_Title }}",
+            "Company": "={{ $('Save Follow up 2 Status').item.json.Company }}",
+            "Industry": "={{ $('Save Follow up 2 Status').item.json.Industry }}",
+            "LinkedIn_URL": "={{ $('Get Active Prospects').item.json.LinkedIn_URL }}",
+            "Outreach_Status ": "=Followup-3 Message Ready",
+            "Last_Contacted": "={{ $('Get Active Prospects').item.json.Last_Contacted }}",
+            "Response": "={{ $('Get Active Prospects').item.json.Response }}",
+            "Next_Action_Date for Followup-1": "={{ $('Get Active Prospects').item.json['Next_Action_Date for Followup-1'] }}",
+            "Followup_1": "={{ $('Get Active Prospects').item.json.Followup_1 }}",
+            "Next_Action_Date for Followup-2": "={{ $('Get Active Prospects').item.json['Next_Action_Date for Followup-2'] }}",
+            "Followup_2": "={{ $('Get Active Prospects').item.json.Followup_2 }}",
+            "Next_Action_Date for Followup-3": "={{ $('Get Active Prospects').item.json['Next_Action_Date for Followup-3'] }}",
+            "Followup_3": "={{ $('Get Active Prospects').item.json.Followup_3 }}"
+          },
+          "matchingColumns": [
+            "Lead_ID"
+          ],
+          "schema": [
+            {
+              "id": "Lead_ID",
+              "displayName": "Lead_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "First_Name",
+              "displayName": "First_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last_Name",
+              "displayName": "Last_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Job_Title",
+              "displayName": "Job_Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Industry",
+              "displayName": "Industry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "LinkedIn_URL",
+              "displayName": "LinkedIn_URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Outreach_Status ",
+              "displayName": "Outreach_Status ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last_Contacted",
+              "displayName": "Last_Contacted",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Response",
+              "displayName": "Response",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Next_Action_Date for Followup-1",
+              "displayName": "Next_Action_Date for Followup-1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_1",
+              "displayName": "Followup_1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Next_Action_Date for Followup-2",
+              "displayName": "Next_Action_Date for Followup-2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_2",
+              "displayName": "Followup_2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Next_Action_Date for Followup-3",
+              "displayName": "Next_Action_Date for Followup-3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_3",
+              "displayName": "Followup_3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Meeting_Booked",
+              "displayName": "Meeting_Booked",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1088,
+        640
+      ],
+      "id": "44ff13f6-fd5f-4df0-a953-2c0db066470b",
+      "name": "Mark Follow up 3 Message Ready"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1007483602,
+          "mode": "list",
+          "cachedResultName": "Sheet5"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Lead_ID": "={{ $json.Lead_ID }}",
+            "First_Name": "={{ $json.First_Name }}",
+            "Last_Name": "={{ $json.Last_Name }}",
+            "Job_Title": "={{ $json.Job_Title }}",
+            "Company": "={{ $json.Company }}",
+            "Industry": "={{ $json.Industry }}",
+            "Outreach_Status ": "={{ $json['Outreach_Status '] }}",
+            "Message Status": "Followup-3 Sent",
+            "Last_Contacted": "={{ $json.Last_Contacted }}",
+            "Next_Action_Date for Followup-1": "={{ DateTime.fromFormat($json.Last_Contacted, \"dd/MM/yyyy\").plus({ days: 15 }).toFormat(\"dd/MM/yyyy\") }}",
+            "Followup_1": "={{ $json.Followup_1 }}",
+            "Next_Action_Date for Followup-2": "={{ DateTime.fromFormat($json.Last_Contacted,\"dd/MM/yyyy\").plus({days:10}).toFormat(\"dd-MM-yyyy\") }}",
+            "Followup_2": "={{ $json.Followup_2 }}",
+            "Next_Action_Date for Followup-3": "={{ DateTime.fromFormat($json.Last_Contacted,\"dd/MM/yyyy\").plus({days:15}).toFormat(\"dd/MM/yyyy\") }}",
+            "Followup_3": "={{ $json.Followup_3 }}"
+          },
+          "matchingColumns": [
+            "Lead_ID"
+          ],
+          "schema": [
+            {
+              "id": "Lead_ID",
+              "displayName": "Lead_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "First_Name",
+              "displayName": "First_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last_Name",
+              "displayName": "Last_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Job_Title",
+              "displayName": "Job_Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Industry",
+              "displayName": "Industry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Outreach_Status ",
+              "displayName": "Outreach_Status ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Message Status",
+              "displayName": "Message Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last_Contacted",
+              "displayName": "Last_Contacted",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Next_Action_Date for Followup-1",
+              "displayName": "Next_Action_Date for Followup-1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_1",
+              "displayName": "Followup_1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Next_Action_Date for Followup-2",
+              "displayName": "Next_Action_Date for Followup-2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_2",
+              "displayName": "Followup_2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Next_Action_Date for Followup-3",
+              "displayName": "Next_Action_Date for Followup-3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_3",
+              "displayName": "Followup_3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Meeting_Booked",
+              "displayName": "Meeting_Booked",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1760,
+        864
+      ],
+      "id": "a03bb927-8578-4fc8-adf7-f702149a8794",
+      "name": "Save Follow up 3 Status And Stop Outreach"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1990898173,
+          "mode": "list",
+          "cachedResultName": "Approval Request Status"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Lead_ID": "={{ $json.Lead_ID }}",
+            "First_Name": "={{ $json.First_Name }}",
+            "Last_Name": "={{ $json.Last_Name }}",
+            "Job_Title": "={{ $json.Job_Title }}",
+            "Company": "={{ $json.Company }}",
+            "Connection_Message": "={{ $('Organize Outreach Message').item.json.connection_message }}",
+            "Followup_1": "={{ $('Organize Outreach Message').item.json.followup_1 }}",
+            "Lead_Score": "={{ $('Organize lead Analysis').item.json.score }}",
+            "Followup_2": "={{ $('Organize Outreach Message').item.json.followup_2 }}",
+            "Followup_3": "={{ $('Organize Outreach Message').item.json.followup_3 }}",
+            "Approval ": "={{ $json.Approval }}",
+            "Email": "={{ $('Get New Prospects').item.json.Email }}",
+            "Approval_Status": "Pending",
+            "LinkedIn_URL": "={{ $json.LinkedIn_URL }}"
+          },
+          "matchingColumns": [
+            "Lead_ID"
+          ],
+          "schema": [
+            {
+              "id": "Lead_ID",
+              "displayName": "Lead_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "First_Name",
+              "displayName": "First_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last_Name",
+              "displayName": "Last_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Job_Title",
+              "displayName": "Job_Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "LinkedIn_URL",
+              "displayName": "LinkedIn_URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Approval_Status",
+              "displayName": "Approval_Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Lead_Score",
+              "displayName": "Lead_Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Approval ",
+              "displayName": "Approval ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Connection_Message",
+              "displayName": "Connection_Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_1",
+              "displayName": "Followup_1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_2",
+              "displayName": "Followup_2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_3",
+              "displayName": "Followup_3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -512,
+        -1216
+      ],
+      "id": "2d43a8cb-5452-4c40-92bd-0e25c71ede9f",
+      "name": "Move the data in the next sheet for workflow"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2008536965,
+          "mode": "list",
+          "cachedResultName": "Approved Queue"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Lead_ID": "={{ $json.Lead_ID }}",
+            "First_Name": "={{ $json.First_Name }}",
+            "Last_Name": "={{ $json.Last_Name }}",
+            "Job_Title": "={{ $json.Job_Title }}",
+            "Company": "={{ $json.Company }}",
+            "Email": "={{ $json.Email }}",
+            "Approval Status": "={{ $json.Approval_Status }}",
+            "Connection_Message": "={{ $json.Connection_Message }}",
+            "Followup_1": "={{ $json.Followup_1 }}",
+            "Followup_2": "={{ $json.Followup_2 }}",
+            "Followup_3": "={{ $json.Followup_3 }}"
+          },
+          "matchingColumns": [
+            "Lead_ID"
+          ],
+          "schema": [
+            {
+              "id": "Lead_ID",
+              "displayName": "Lead_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "First_Name",
+              "displayName": "First_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last_Name",
+              "displayName": "Last_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Job_Title",
+              "displayName": "Job_Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Industry",
+              "displayName": "Industry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Approval Status",
+              "displayName": "Approval Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Approved_At",
+              "displayName": "Approved_At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Outreach_Status ",
+              "displayName": "Outreach_Status ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Connection_Message",
+              "displayName": "Connection_Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last_Contacted",
+              "displayName": "Last_Contacted",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Next_Action_Date for Followup-1",
+              "displayName": "Next_Action_Date for Followup-1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Followup_1",
+              "displayName": "Followup_1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Next_Action_Date for Followup-2",
+              "displayName": "Next_Action_Date for Followup-2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Followup_2",
+              "displayName": "Followup_2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Next_Action_Date for Followup-3",
+              "displayName": "Next_Action_Date for Followup-3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Followup_3",
+              "displayName": "Followup_3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Meeting_Booked",
+              "displayName": "Meeting_Booked",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1728,
+        -736
+      ],
+      "id": "8d3553e6-9065-402f-963a-cdb6a7d86855",
+      "name": "Update the next sheet for Workflow"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1007483602,
+          "mode": "list",
+          "cachedResultName": "Sheet5"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Lead_ID": "={{ $json.Lead_ID }}",
+            "First_Name": "={{ $json.First_Name }}",
+            "Last_Name": "={{ $json.Last_Name }}",
+            "Job_Title": "={{ $json.Job_Title }}",
+            "Company": "={{ $json.Company }}",
+            "Industry": "={{ $json.Industry }}",
+            "Outreach_Status ": "={{ $json['Outreach_Status '] }}",
+            "Last_Contacted": "={{ $('Find the matching prospect').item.json.Approved_At }}",
+            "Next_Action_Date for Followup-1": "={{ DateTime.fromFormat($('Find the matching prospect').item.json.Approved_At, 'dd/MM/yyyy').plus({ days: 5 }).toFormat('dd/MM/yyyy') }}",
+            "Followup_1": "={{ $json.Followup_1 }}",
+            "Next_Action_Date for Followup-2": "={{ DateTime.fromFormat($('Find the matching prospect').item.json.Approved_At, 'dd/MM/yyyy').plus({ days: 10 }).toFormat('dd/MM/yyyy') }}",
+            "Next_Action_Date for Followup-3": "={{ DateTime.fromFormat($('Find the matching prospect').item.json.Approved_At, 'dd/MM/yyyy').plus({ days: 15 }).toFormat('dd/MM/yyyy') }}",
+            "Followup_2": "={{ $json.Followup_2 }}",
+            "Followup_3": "={{ $json.Followup_3 }}",
+            "LinkedIn_URL": "={{ $('Find the matching prospect').item.json.LinkedIn_URL }}"
+          },
+          "matchingColumns": [
+            "Lead_ID"
+          ],
+          "schema": [
+            {
+              "id": "Lead_ID",
+              "displayName": "Lead_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "First_Name",
+              "displayName": "First_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last_Name",
+              "displayName": "Last_Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Job_Title",
+              "displayName": "Job_Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Industry",
+              "displayName": "Industry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "LinkedIn_URL",
+              "displayName": "LinkedIn_URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Outreach_Status ",
+              "displayName": "Outreach_Status ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Message Status",
+              "displayName": "Message Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last_Contacted",
+              "displayName": "Last_Contacted",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Response",
+              "displayName": "Response",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Next_Action_Date for Followup-1",
+              "displayName": "Next_Action_Date for Followup-1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_1",
+              "displayName": "Followup_1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Next_Action_Date for Followup-2",
+              "displayName": "Next_Action_Date for Followup-2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_2",
+              "displayName": "Followup_2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Next_Action_Date for Followup-3",
+              "displayName": "Next_Action_Date for Followup-3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Followup_3",
+              "displayName": "Followup_3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Meeting_Booked",
+              "displayName": "Meeting_Booked",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1328,
+        -352
+      ],
+      "id": "ec21e05c-4b22-4f17-ae8b-1e90e21335d9",
+      "name": "Update the Next sheet For Workflow"
+    },
+    {
+      "parameters": {
+        "sendTo": "=outreach-manager@example.com",
+        "subject": "LinkedIn Outreach-Ready to send",
+        "message": "=<div style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; background-color: #ffffff;\">\n  \n  <!-- Header -->\n  <div style=\"border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 20px;\">\n    <h2 style=\"color: #0f172a; font-size: 18px; margin: 0;\">Approved Prospect – Ready for Outreach</h2>\n    <p style=\"color: #64748b; font-size: 13px; margin: 4px 0 0 0;\">This prospect has been approved. Please send the connection message below on LinkedIn.</p>\n  </div>\n\n  <!-- Prospect Info Grid -->\n  <table style=\"width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px;\">\n    <tr>\n      <td style=\"padding: 6px 0; color: #64748b; width: 130px;\"><strong>Prospect Name:</strong></td>\n      <td style=\"padding: 6px 0; color: #0f172a; font-weight: 600;\">{{ $json.First_Name }} {{ $json.Last_Name }}</td>\n    </tr>\n    <tr>\n      <td style=\"padding: 6px 0; color: #64748b;\"><strong>Role:</strong></td>\n      <td style=\"padding: 6px 0; color: #334155;\">{{ $json.Job_Title }}</td>\n    </tr>\n    <tr>\n      <td style=\"padding: 6px 0; color: #64748b;\"><strong>Company:</strong></td>\n      <td style=\"padding: 6px 0; color: #334155;\">{{ $json.Company }}</td>\n    </tr>\n    <tr>\n      <td style=\"padding: 6px 0; color: #64748b;\"><strong>LinkedIn Profile:</strong></td>\n      <td style=\"padding: 6px 0;\">\n        <a href=\"{{ $json.LinkedIn_URL }}\" target=\"_blank\" style=\"color: #0a66c2; text-decoration: none; font-weight: 600;\">Open Profile &rarr;</a>\n      </td>\n    </tr>\n  </table>\n\n  <!-- Connection Message -->\n  <div style=\"margin-bottom: 20px;\">\n    <div style=\"font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; margin-bottom: 6px;\">Connection Message to Send</div>\n    <div style=\"background-color: #f8fafc; border-left: 3px solid #0a66c2; padding: 14px; font-size: 13px; line-height: 1.5; color: #334155; border-radius: 0 4px 4px 0;\">\n      {{ $json.Connection_Message }}\n    </div>\n  </div>\n\n  <!-- Action Callout -->\n  <div style=\"background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 12px 16px; font-size: 13px; color: #166534; text-align: center;\">\n    <strong>Next Action:</strong> Kindly visit the LinkedIn profile above and send the connection message.\n  </div>\n\n</div>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -1744,
+        -352
+      ],
+      "id": "794b76ed-f783-431b-9fef-0711ccc47b59",
+      "name": "Email the Sales Representative"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e0e8f083-a202-4830-8ca3-4ac823a88d98",
+              "leftValue": "={{ $json['Approval Status'] }}",
+              "rightValue": "Approved",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2384,
+        -256
+      ],
+      "id": "d1740f3b-7059-4ddc-a3ed-e8f384077256",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "content": "##  Active Followups\n",
+        "height": 80,
+        "width": 528,
+        "color": "#CAC777"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -3456,
+        288
+      ],
+      "id": "a92b702d-3b15-4740-8022-17c9cdc7784b",
+      "name": "Sticky Note4"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Has Prospect Replied": {
+      "main": [
+        [
+          {
+            "node": "Stop Outreach – Prospect Replied",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Which Follow up Comes Next?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start Outreach Process": {
+      "main": [
+        [
+          {
+            "node": "Get New Prospects",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get New Prospects": {
+      "main": [
+        [
+          {
+            "node": "Processing the leads one by one",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Processing the leads one by one": {
+      "main": [
+        [],
+        [
+          {
+            "node": "AI lead Qualification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI lead Qualification": {
+      "main": [
+        [
+          {
+            "node": "Organize lead Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Organize lead Analysis": {
+      "main": [
+        [
+          {
+            "node": "Is this a Qualified Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is this a Qualified Lead": {
+      "main": [
+        [
+          {
+            "node": "Create Personalised Outreach",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mark as not Qualified",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Personalised Outreach": {
+      "main": [
+        [
+          {
+            "node": "Organize Outreach Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Organize Outreach Message": {
+      "main": [
+        [
+          {
+            "node": "Save Outreach to Lead Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check for Messages Awaiting Approval": {
+      "main": [
+        [
+          {
+            "node": "Find Pending Approvals",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Pending Approvals": {
+      "main": [
+        [
+          {
+            "node": "Process each approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process each approval": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Send Messages for Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Receive Approval Decision": {
+      "main": [
+        [
+          {
+            "node": "Find the matching prospect",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find the matching prospect": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approved or Rejected?": {
+      "main": [
+        [
+          {
+            "node": "Approve Outreach Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject Outreach Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reject Outreach Message": {
+      "main": [
+        []
+      ]
+    },
+    "Mark as not Qualified": {
+      "main": [
+        [
+          {
+            "node": "Processing the leads one by one",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Outreach to Lead Database": {
+      "main": [
+        [
+          {
+            "node": "Processing the leads one by one",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Move the data in the next sheet for workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Approval Request as sent": {
+      "main": [
+        [
+          {
+            "node": "Process each approval",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Update the next sheet for Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Messages for Review": {
+      "main": [
+        [
+          {
+            "node": "Mark Approval Request as sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approve Outreach Message": {
+      "main": [
+        [
+          {
+            "node": "Email the Sales Representative",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check for Due Follow-ups": {
+      "main": [
+        [
+          {
+            "node": "Get Active Prospects",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Active Prospects": {
+      "main": [
+        [
+          {
+            "node": "Has Prospect Replied",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Which Follow up Comes Next?": {
+      "main": [
+        [
+          {
+            "node": "Save Connected Status",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Save Follow up 1 Status",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Save Follow up 2 Status",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Save Follow up 3 Status And Stop Outreach",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Connected Status": {
+      "main": [
+        [
+          {
+            "node": "Prepare Followup-1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Followup-1": {
+      "main": [
+        [
+          {
+            "node": "Send Followup-1 Reminder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Followup-1 Reminder": {
+      "main": [
+        [
+          {
+            "node": "Mark Follow up 1 Message Ready",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Followup-2": {
+      "main": [
+        [
+          {
+            "node": "Send Followup-2 Reminder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Followup-2 Reminder": {
+      "main": [
+        [
+          {
+            "node": "Mark Follow up 2 Message Ready",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Follow up 1 Status": {
+      "main": [
+        [
+          {
+            "node": "Prepare Followup-2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Follow up 2 Status": {
+      "main": [
+        [
+          {
+            "node": "Prepare Follow up 3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Follow up 3": {
+      "main": [
+        [
+          {
+            "node": "Send Follow up 3 Reminder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Follow up 3 Reminder": {
+      "main": [
+        [
+          {
+            "node": "Mark Follow up 3 Message Ready",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Follow up 3 Status And Stop Outreach": {
+      "main": [
+        []
+      ]
+    },
+    "Move the data in the next sheet for workflow": {
+      "main": [
+        []
+      ]
+    },
+    "Update Message Sent": {
+      "main": [
+        [
+          {
+            "node": "Update the Next sheet For Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email the Sales Representative": {
+      "main": [
+        [
+          {
+            "node": "Update Message Sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Approved or Rejected?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "tags": []
+}
